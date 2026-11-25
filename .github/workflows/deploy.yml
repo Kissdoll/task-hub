@@ -1,0 +1,35 @@
+name: Deploy TaskHub
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+env:
+  VITE_PAGES: 'true'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/configure-pages@v5
+        id: pages
+      - name: Install and Build
+        run: |
+          npm install
+          npm run build -- --base "${{ steps.pages.outputs.base_path }}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Deploy
+        uses: actions/deploy-pages@v4
+        id: deployment
